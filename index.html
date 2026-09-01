@@ -116,6 +116,9 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   td.n,th.n{text-align:right;width:88px}
   td.n{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:16px;color:var(--lacivert)}
   tbody tr:last-child td{border-bottom:none}
+  td.durum{font-weight:600}
+  tr.yok td.durum{color:var(--turuncu)}
+  tr.var td.durum{color:var(--lacivert)}
   tr.yok td.kod{color:var(--turuncu)}
   tr.yok td.ad::after{content:' · listede yok';color:var(--turuncu);font-size:12.5px}
 
@@ -182,7 +185,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     </div>
     <div class="tablebox">
       <table>
-        <thead><tr><th class="tur">Tür</th><th class="kod">Kodu</th><th>Açıklama</th><th class="n">Miktar</th></tr></thead>
+        <thead><tr><th class="tur">Durum</th><th class="tur">Tür</th><th class="kod">Kodu</th><th>Açıklama</th><th class="n">Miktar</th></tr></thead>
         <tbody id="tbody"></tbody>
       </table>
     </div>
@@ -388,7 +391,8 @@ $('run').onclick = () => {
 
   const esc = s => String(s).replace(/</g, '&lt;');
   $('tbody').innerHTML = out.map(r =>
-    `<tr class="${r.ref ? '' : 'yok'}">
+    `<tr class="${r.ref ? 'var' : 'yok'}">
+       <td class="tur durum">${r.ref ? 'var' : 'yok'}</td>
        <td class="tur">Malzeme</td>
        <td class="kod">${esc(r.kod || '—')}</td>
        <td class="ad">${esc(r.ad)}</td>
@@ -405,16 +409,17 @@ $('run').onclick = () => {
 
 /* ------------- Excel'e yaz ------------- */
 $('save').onclick = () => {
-  const aoa = [['Tür', 'Kodu', 'Açıklama', 'Miktar'],
-               ...out.map(r => ['Malzeme', r.kod || '', r.ad, r.n])];
+  const aoa = [['Durum', 'Tür', 'Kodu', 'Açıklama', 'Miktar'],
+               ...out.map(r => [r.ref ? 'var' : 'yok', 'Malzeme', r.kod || '', r.ad, r.n])];
   const ws = XLSX.utils.aoa_to_sheet(aoa);
 
   // Miktar sütunu 7,000 biçiminde görünsün ama sayı kalsın
   for(let i = 0; i < out.length; i++){
-    const a = XLSX.utils.encode_cell({c:3, r:i+1});
+    const a = XLSX.utils.encode_cell({c:4, r:i+1});
     if(ws[a]){ ws[a].t = 'n'; ws[a].z = '0.000'; }
   }
   ws['!cols'] = [
+    {wch: 8},
     {wch: 10},
     {wch: Math.min(22, Math.max(10, ...out.map(r => (r.kod || '').length + 2)))},
     {wch: Math.min(80, Math.max(20, ...out.map(r => r.ad.length + 2)))},
